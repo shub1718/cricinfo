@@ -76,7 +76,7 @@
                 else var cal= result['query']['results'];
                 $.each( cal, function( key, res ) {
                   //for checking batting team and bowling team
-                  if((res['past_ings'][0] && res['past_ings'][0]['s']['a']['i']==res['teams'][0]['i'])||(res['past_ings']['s']['a']['i']==res['teams'][0]['i']))
+                  if((res['past_ings'][0] && res['past_ings'][0]['s']['a']['i']==res['teams'][0]['i'] )||(res['past_ings']['s']&&res['past_ings']['s']['a']['i']==res['teams'][0]['i']))
                   {
                     var team_a=res['teams'][0]['fn'];
                     var team_b=res['teams'][1]['fn'];
