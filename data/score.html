@@ -98,6 +98,7 @@
                       $("#scores").append("<br><span class='sml'> <strong>Required Run:</strong> "+res['past_ings'][0]['s']['a']['ru']+"&nbsp&nbsp<strong>Overs left:</strong> "+res['past_ings'][0]['s']['a']['ro']+"&nbsp&nbsp<strong>Rrr:</strong> "+res['past_ings'][0]['s']['a']['rr']+"</span></div>");
                   }
                   // batsmen 
+                  if(res['past_ings'][0]['d']['a']['t']!=null){
                    if(res['past_ings'][0]['d']['a']['t'][0]){           //checking for more than twp batsman
                      $.each(res['past_ings'][0]['d']['a']['t'],function(i, field){     // if two batsmen
                       if(field['a']==2)                                 //checking for strike
@@ -124,12 +125,14 @@
                    $("#scores").append("<br><br><span class='lrg'>"+team_b+"  "+res['past_ings'][1]['s']['a']['r']+"/"+res['past_ings'][1]['s']['a']['w']+
                     "   ("+res['past_ings'][1]['s']['a']['o']+")</span></div>");
                    }
+               }
                  else{
                     //first innings
                       $("#scores").append("<br><br><span class='lrg'>"+team_a+"  "+res['past_ings']['s']['a']['r']+"/"+res['past_ings']['s']['a']['w']+
                     "   ("+res['past_ings']['s']['a']['o']+")"+" &nbsp&nbsp<span class='sml'>runrate:"+res['past_ings']['s']['a']['cr']+"</span></span></div>");
 
                     // batsmen 
+                    if(res['past_ings']['d']['a']['t']!=null){
                     if(res['past_ings']['d']['a']['t'][0]){               //checking for more than twp batsman
                     $.each(res['past_ings']['d']['a']['t'],function(i, field){      // if two batsmen                     
                       if(field['a']==2)                           //checking for strike
@@ -150,6 +153,7 @@
                       $("#scores").append("<br><span class='sml'>"+field['name']+" "+strike+
                       "    <span class='lrg'>"+field['r']+"</span>("+field['b']+")  &nbsp&nbsp <strong>sr:</strong> "+field['sr'].substring(0,7)+" &nbsp&nbsp <strong>four:</strong> "+field['four']+" &nbsp&nbsp <strong>six: </strong>"+field['six']+"</span></div>");
                     }
+                }
                    
                  }
 
