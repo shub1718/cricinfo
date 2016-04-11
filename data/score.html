@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>AJAX Example</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="assets/bootstrap.min.css">
+  <style>
+     .navbar{
+      overflow-x:hidden;
+      box-shadow: 0px 2px 5px 3px rgba(0, 0, 0, 0.26);
+      left: 0px;
+      right: 0px;
+      top:0px;
+      z-index: 1;
+      position: fixed;
+      border-radius:0;
+     }
+     .head{
+        overflow-x:hidden;
+        height:40px;
+        background-color:#26a69a;
+        color:white;
+        font-size:20px;
+        padding:5px;
+        box-shadow: 0px 2px 3px 3px rgba(0, 0, 0, 0.26);
+     }
+     #cnt,#scores,#matches,#nws,#pastscores{
+        margin-top:20px;
+        overflow-x:hidden;
+        font-size:15px;
+     }
+     .sml{
+       font-size:12px;
+       font-weight:30px;
+       
+     }
+     .lrg{
+
+       font-weight:bold;
+     }
+     #nws>a{
+      text-decoration:none;
+      color:black;
+     }
+  </style>
+  <script src="assets/jquery.min.js"></script>
+  <script src="assets/bootstrap.min.js"></script>
+  <script>
+    function series() {
+              $.getJSON("https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20cricket.series.upcoming&format=json&diagnostics=true&env=store%3A%2F%2F0TxIGQMQbObzvU4Apia0V0&callback=", function(result){
+                document.getElementById("cnt").innerHTML = "";
+              if(result['query']['results']==null){
+                  $("#cnt").append("<div class='tab'>No Upcoming Series</div>");
+              }
+              else{
+                  var res=result['query']['results']['Series'];
+              $.each(res, function(i, field){
+                  var date= new Date(field['StartDate']);
+                  $("#cnt").append("<div class='tab'><span class='lrg'>"+field['SeriesName']+"</span><br><span class='sml'>Start : "+date+"</span><hr></div>");
+              });
+              }
+              
+          });
+      }
+    function score() {
+            $.getJSON("https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20cricket.scorecard.live.summary&format=json&diagnostics=true&env=store%3A%2F%2F0TxIGQMQbObzvU4Apia0V0&callback=", function(result){
+              document.getElementById("scores").innerHTML = "";
+              if(result['query']['results']==null){
+                  $("#scores").append("<div class='tab'>No Live Matches</div>");
+              }
+              else{
+                if(result['query']['results']['Scorecard'][0]){
+                  var cal = result['query']['results']['Scorecard'];
+                }
+                else var cal= result['query']['results'];
+                $.each( cal, function( key, res ) {
+                  //for checking batting team and bowling team
+                  if((res['past_ings'][0] && res['past_ings'][0]['s']['a']['i']==res['teams'][0]['i'])||(res['past_ings']['s']['a']['i']==res['teams'][0]['i']))
+                  {
+                    var team_a=res['teams'][0]['fn'];
+                    var team_b=res['teams'][1]['fn'];
+                  }
+                  else{
+                    var team_b=res['teams'][0]['fn'];
+                    var team_a=res['teams'][1]['fn'];
+                  }
+                  //listing both team with their flags
+                  $("#scores").append("<br><span class='lrg'><img src="+res['teams'][0]['logo']['small']+" > "+res['teams'][0]['fn']+"  &nbsp&nbsp&nbspVs&nbsp&nbsp&nbsp  "+res['teams'][1]['fn']+" <img src="+res['teams'][1]['logo']['small']+" ></span></div>");
+                  //checking firsts inning or second inning 
+                if(res['past_ings'][0]){
+                   //second innings
+                   //score and runrate 
+                  $("#scores").append("<br><br><span class='lrg'>"+team_a+"  "+res['past_ings'][0]['s']['a']['r']+"/"+res['past_ings'][0]['s']['a']['w']+
+                    "   ("+res['past_ings'][0]['s']['a']['o']+")"+" &nbsp&nbsp<span class='sml'>runrate:"+res['past_ings'][0]['s']['a']['cr']+"</span></span></div>");
+                  //required runs ,  overs left and required run rate
+                  if(res['past_ings'][0]['s']['a']['ru']){
+                      $("#scores").append("<br><span class='sml'> <strong>Required Run:</strong> "+res['past_ings'][0]['s']['a']['ru']+"&nbsp&nbsp<strong>Overs left:</strong> "+res['past_ings'][0]['s']['a']['ro']+"&nbsp&nbsp<strong>Rrr:</strong> "+res['past_ings'][0]['s']['a']['rr']+"</span></div>");
+                  }
+                  // batsmen 
+                   if(res['past_ings'][0]['d']['a']['t'][0]){           //checking for more than twp batsman
+                     $.each(res['past_ings'][0]['d']['a']['t'],function(i, field){     // if two batsmen
+                      if(field['a']==2)                                 //checking for strike
+                        var strike="*";
+                      else 
+                        var strike="";
+                      //displaying batsman name,score ,ball face , sr , fours and six
+                       $("#scores").append("<br><span class='sml'>"+field['name']+" "+strike+
+                      "    <span class='lrg'>"+field['r']+"</span>("+field['b']+")  &nbsp&nbsp <strong>sr:</strong> "+field['sr'].substring(0,7)+" &nbsp&nbsp <strong>four:</strong> "+field['four']+" &nbsp&nbsp <strong>six: </strong>"+field['six']+"</span></div>");
+                       }  );
+                    }
+                    else{
+                      var field =res['past_ings'][0]['d']['a']['t'];   //for one batsman
+                      if(field['a']==2)                                    //checking for strike
+                        var strike="*";
+                      else 
+                        var strike="";
+                      //displaying batsman name,score ,ball face , sr , fours and six
+                      $("#scores").append("<br><span class='sml'>"+field['name']+" "+strike+
+                      "    <span class='lrg'>"+field['r']+"</span>("+field['b']+")  &nbsp&nbsp <strong>sr:</strong> "+field['sr'].substring(0,7)+" &nbsp&nbsp <strong>four:</strong> "+field['four']+" &nbsp&nbsp <strong>six: </strong>"+field['six']+"</span></div>");
+                    }
+
+                   // second team scores 
+                   $("#scores").append("<br><br><span class='lrg'>"+team_b+"  "+res['past_ings'][1]['s']['a']['r']+"/"+res['past_ings'][1]['s']['a']['w']+
+                    "   ("+res['past_ings'][1]['s']['a']['o']+")</span></div>");
+                   }
+                 else{
+                    //first innings
+                      $("#scores").append("<br><br><span class='lrg'>"+team_a+"  "+res['past_ings']['s']['a']['r']+"/"+res['past_ings']['s']['a']['w']+
+                    "   ("+res['past_ings']['s']['a']['o']+")"+" &nbsp&nbsp<span class='sml'>runrate:"+res['past_ings']['s']['a']['cr']+"</span></span></div>");
+
+                    // batsmen 
+                    if(res['past_ings']['d']['a']['t'][0]){               //checking for more than twp batsman
+                    $.each(res['past_ings']['d']['a']['t'],function(i, field){      // if two batsmen                     
+                      if(field['a']==2)                           //checking for strike
+                        var strike="*";
+                      else 
+                        var strike="";
+                       $("#scores").append("<br><span class='sml'>"+field['name']+" "+strike+
+                      "    <span class='lrg'>"+field['r']+"</span>("+field['b']+")  &nbsp&nbsp <strong>sr:</strong> "+field['sr'].substring(0,7)+" &nbsp&nbsp <strong>four:</strong> "+field['four']+" &nbsp&nbsp <strong>six: </strong>"+field['six']+"</span></div>");
+                       }  );
+                    }
+                    else{                                     // for one batsman
+                      var field =res['past_ings']['d']['a']['t'];
+                      if(field['a']==2)                         //checking for strike
+                        var strike="*";
+                      else 
+                        var strike="";
+                       //displaying batsman name,score ,ball face , sr , fours and six
+                      $("#scores").append("<br><span class='sml'>"+field['name']+" "+strike+
+                      "    <span class='lrg'>"+field['r']+"</span>("+field['b']+")  &nbsp&nbsp <strong>sr:</strong> "+field['sr'].substring(0,7)+" &nbsp&nbsp <strong>four:</strong> "+field['four']+" &nbsp&nbsp <strong>six: </strong>"+field['six']+"</span></div>");
+                    }
+                   
+                 }
+
+                  if(res['toss']['win']==res['teams'][0]['i'])   //team who wins toss
+                      var toss=res['teams'][0]['fn'];
+                  else
+                      var toss=res['teams'][1]['fn'];
+                  if(res['toss']['bat']==1)                   //elected batting or bowling
+                      var choose="batting";
+                  else
+                      var choose="bowling";
+                  // toss result
+                  $("#scores").append("<br><br><span class='sml'>Toss : "+toss+"  elected  "+choose+"</span></div>");
+                  // series name ,match no , stadium
+                  $("#scores").append("<br><span class='sml'>"+res['series']['series_name']+"  ,  "+res['mn']+"<br>"+res['place']['stadium']+"</span><hr></div>");
+                  });
+              }
+        });
+    }
+    function matches() {
+            $.getJSON("https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20cricket.upcoming_matches&format=json&diagnostics=true&env=store%3A%2F%2F0TxIGQMQbObzvU4Apia0V0&callback=", function(result){
+              document.getElementById("matches").innerHTML = "";
+              if(result['query']['results']==null){
+                  $("#matches").append("<div class='tab'>No Upcoming Matches</div>");
+              }
+              else{
+                  var res=result['query']['results']['Match'];
+                  //console.log(res);
+              $.each(res, function(i, field){
+                  var date= new Date(field['StartDate']);
+                  $("#matches").append("<div class='tab'><span class='lrg'>"+field['Team'][0]['Team']+"  Vs  "+field['Team'][1]['Team']+"</span><br><span class='sml'>"+field['mtype']+"  , "+field['series_name']+"  , "+field['MatchNo']+"</span>"+"<br><span class='sml'>Venue: "+field['Venue']['content']+"</span>"+"<br><span class='sml'>Start : "+date+"</span><hr></div>");
+              });
+            }
+        });
+    }
+    function news(){
+          $.getJSON("https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20cricket.news%20%20where%20region%3D%22in%22&format=json&diagnostics=true&env=store%3A%2F%2F0TxIGQMQbObzvU4Apia0V0&callback=", function(result){
+                document.getElementById("nws").innerHTML = "";
+              if(result['query']['results']==null){
+                  $("#nws").append("<div class='tab'>No Upcoming Series</div>");
+              }
+              else{
+                  var res=result['query']['results']['item'];
+              $.each(res, function(i, field){
+                  var date= new Date(field['pubDate']);
+                  $("#nws").append("<div class='tab'><span class='lrg'>"+field['title']+"</span><br><span class='sml'>Author : "+field['author']+"<br>Publish-Date: "+date+"<br>"+field['description'].substring(0,150)+"...<a target='_blank' href='"+field['link']+"'>(more)</a></span><hr></div>");
+              });
+              }
+              
+          });
+    }
+    function pastscore(){
+          $.getJSON("https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20cricket.past_matches&format=json&diagnostics=true&env=store%3A%2F%2F0TxIGQMQbObzvU4Apia0V0&callback=", function(result){
+              document.getElementById("pastscores").innerHTML = "";
+              if(result['query']['results']==null){
+                  $("#pastscores").append("<div class='tab'>No Past Matches</div>");
+              }
+              else{
+                  var res=result['query']['results']['Match'];
+              $.each(res, function(i, field){
+                  if(field['Result']['Team'][0]['matchwon']=="yes"){
+                     if(field['Result']['Team'][0]['id']==field['Team'][0]['teamid']){
+                        var team_a=field['Team'][0]['Team'];
+                        var team_b=field['Team'][1]['Team'];
+                     }
+                     else{
+                        var team_a=field['Team'][1]['Team'];
+                        var team_b=field['Team'][0]['Team'];
+                     }
+                                             
+                  }
+                  else{
+                      if(field['Result']['Team'][1]['id']==field['Team'][0]['teamid']){
+                        var team_a=field['Team'][0]['Team'];
+                        var team_b=field['Team'][1]['Team'];
+                     }
+                     else{
+                        var team_a=field['Team'][1]['Team'];
+                        var team_b=field['Team'][0]['Team'];
+                     }
+                  }
+                  var rr=field['Result']['by']+"   "+field['Result']['how'];
+                  var date= new Date(field['StartDate']);
+                  $("#pastscores").append("<div class='tab'><span class='lrg'>"+team_a+"  beat  "+team_b+" by "+rr+"</span><br><span class='sml'>"+field['mtype']+"  , "+field['series_name']+"  , "+field['MatchNo']+"</span>"+"<br><span class='sml'>Venue: "+field['Venue']['content']+"</span>"+"<br><span class='sml'>"+date+"</span><hr></div>");
+              });
+            }
+        });
+    }
+    $( document ).ready(function() {
+        setInterval(score,5000);
+        series();
+        setInterval(pastscore,5000);
+        setInterval(series,60000);
+        matches();
+        setInterval(matches,60000);
+        news();
+        setInterval(news,60000);
+    });
+  </script>
+</head>
+<body>
+<nav class="navbar " style="margin:0px;padding:0px;height:60px;background-color:#00897B">
+  <div class="container-fluid">
+   <div class="" style = "margin-top:10px;" id="bs-example-navbar-collapse-1">
+      <ul class="">
+        <center><span style="font-size:25px;font-weight:bold;color:white">CRIC-INFO</span> </center>
+      </ul>
+    </div>
+  </div>
+</nav>
+<div class="container-fluid" style="margin-top:60px;">
+    <div class="row head" >
+      <center>Live Scores</center>
+    </div>
+    <div id="scores"></div>
+</div>
+<div class="container-fluid" style="margin-top:10px;">
+    <div class="row head" >
+      <center>Past Matches</center>
+    </div>
+    <div id="pastscores"></div>
+</div>
+<div class="container-fluid" style="margin-top:10px;">
+    <div class="row head" >
+      <center>Upcoming Matches</center>
+    </div>
+    <div id="matches"></div>
+</div>
+<div class="container-fluid" style="margin-top:10px;" >
+    <div class="row head" >
+      <center>Upcoming Series</center>
+    </div>
+    <div id="cnt"></div>
+</div>
+<div class="container-fluid" style="margin-top:10px;" >
+    <div class="row head" >
+      <center>Cric News</center>
+    </div>
+    <div id="nws"></div>
+</div>
+</body>
+</html>
