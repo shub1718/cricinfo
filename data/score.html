@@ -86,7 +86,17 @@
                     var team_a=res['teams'][1]['fn'];
                   }
                   //listing both team with their flags
+                  
                   $("#scores").append("<br><span class='lrg'><img src="+res['teams'][0]['logo']['small']+" > "+res['teams'][0]['fn']+"  &nbsp&nbsp&nbspVs&nbsp&nbsp&nbsp  "+res['teams'][1]['fn']+" <img src="+res['teams'][1]['logo']['small']+" ></span></div>");
+                  //if matchends
+                  if(res['result']!=0){
+                    
+                  if(res['result']['winner']==res['teams'][0]['i'])   //team who wins toss
+                      var teamwon=res['teams'][0]['fn'];
+                  else
+                      var teamwon=res['teams'][1]['fn'];
+                     $("#scores").append("<br><br><span class='lrg'>"+teamwon +" won by "+res['result']['by']+" "+res['result']['how']+"</span></div>");
+                  }
                   //checking firsts inning or second inning 
                 if(res['past_ings'][0]){
                    //second innings
